@@ -5,6 +5,8 @@ Replace highway ref's in OSM file for the Norwegian county reform
 
 <code>python new_ref.py [county code] [input file]</code>
 
+Example: <code>python new_ref.py 14 Sogn_og_Fjordane.osm</code>
+
 
 ### Notes ###
 
