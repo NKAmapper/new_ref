@@ -15,7 +15,7 @@ from xml.etree import ElementTree
 
 version = "0.2.0"
 
-swap_ref = True  # Swap ref's in OSM file
+swap_ref = True     # Swap ref's in OSM file
 extra_check = True  # Also check primary/secondary for highway ref's not in input table
 
 
@@ -142,7 +142,13 @@ if __name__ == '__main__':
 	for ref in circular_refs:
 		message ("Circular reference: %s\n" % ref.replace("F", "Fv").replace("R", "Rv"))
 
-	# Wrap up
+	# Discover references not found in OSM
+
+	for ref in new_refs:
+		if ref not in used_refs:
+			message ("Ref %s not found\n" % ref.replace("F", "Fv").replace("R", "Rv"))
+
+	# Output file and wrap up
 
 	root.set("upload", "false")
 
@@ -157,9 +163,4 @@ if __name__ == '__main__':
 	message ("%i highways with FIXCLASS to check\n" % count_fixclass)
 	message ("%i highways with FIXREF to check (old ref split into several new refs)\n" % count_fixref)
 	message ("\nWritten to file '%s'\n" % filename)
-
-	for ref in new_refs:
-		if ref not in used_refs:
-			message ("Ref %s not found\n" % ref.replace("F", "Fv").replace("R", "Rv"))
-
 	message ("Time: %i seconds\n" % (time.time() - start_time))
