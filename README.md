@@ -10,7 +10,7 @@ Replace highway ref's in OSM file for the Norwegian county reform
 
 * This program has been made for replacing OSM highway ref's in Norway for the Norwegian 2019/2020 county reform. It converts one county at a time.
 * Preparations - Excel table:
-  * The Norwegian Public Roads Administration has published updated lists of the highways which will get new reference numbers: https://labs.vegdata.no/nvdbstatus/regionreform/vegnummer/
+  * The Norwegian Public Roads Administration has published updated lists of the highways which will get new reference numbers: [Excel files](https://labs.vegdata.no/nvdbstatus/regionreform/vegnummer/)
   * The Excel sheet for thw whole country must be downloaded and stores as a .csv file with the name "*Nye vegnummer - Hele landet.csv*".
 * Preparations - Existing OSM highways:
   * Download the existing highways from OSM for one county with the following text in the Overpass query wizard in JOSM: <code>highway=primary or highway=primary_link or highway=secondary or highway=secondary_link or highway=trunk or highway=trunk_link or highway=motorway or highway=motorway_link or route=ferry or (highway=* and ref=*) in "Sogn og Fjordane"</code>
@@ -25,3 +25,10 @@ Replace highway ref's in OSM file for the Norwegian county reform
   * Please do not edit the geometry of the highways or any associated relations, in order to avoid conflicts when uploading.
   * The risk of conflicts will increase if the edits are not uploaded quite soon after the input file was generated, as other users may have edited the highways or associated relations, in the latter case even far away from the county in question.
   * Remember to remove the uppercase information tags before uploading.
+
+
+### References ###
+
+* [Statens Vegvesen - New road numbers](https://www.vegvesen.no/fag/teknologi/nasjonal+vegdatabank/tjenester/nye-vegnummer)
+* [Excel files](https://labs.vegdata.no/nvdbstatus/regionreform/vegnummer/)
+* [Kartverket - Road network](https://www.kartverket.no/Om-Kartverket/Nyheter/vegnett-og-kommunereformen-2020/)
