@@ -25,6 +25,9 @@ Example: <code>python new_ref.py 14 Sogn_og_Fjordane.osm</code>
   * Please do not edit the geometry of the highways or any associated relations, in order to avoid conflicts when uploading.
   * The risk of conflicts will increase if edits are not uploaded quite soon after the input file was generated, as other users may have edited the highways or associated relations. In the latter case even changes far away from the county in question can cause problems.
   * Remember to remove the uppercase information tags before uploading.
+ * The following potential problems will be reported by the program and should be checked:
+   * Any circular references, i.e. a new ref in the Excel sheet which are also an old ref
+   * Any old refs in the Excel sheet which were not found in OSM
 
 ### References ###
 
