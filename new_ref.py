@@ -13,10 +13,11 @@ import csv
 from xml.etree import ElementTree
 
 
-version = "0.2.0"
+version = "0.3.0"
 
 swap_ref = True     # Swap ref's in OSM file
-extra_check = True  # Also check primary/secondary for highway ref's not in input table
+swap_all = True     # Swap all ref's regardless of NVDB update status
+extra_check = True  # Also carry out additional verifications (missing ref, primary/secondary not in table)
 
 
 # Output message
@@ -60,22 +61,21 @@ if __name__ == '__main__':
 
 	for row in file_refs:
 		count += 1
-		if count > 21:
+		if count > 28:
 
 			if old_ref and row['category'] + row['old_ref'] != old_ref:
-#				if old_ref.strip("RF") != new_ref:
 				new_refs[ old_ref.replace("E", "E ") ] = new_ref
 				old_ref = ""
 				new_ref = ""
 
-			if row['county'] == county and row['status'] == "Vedtatt" and row['nvdb_date'] and "." in row['nvdb_date'][2]:
+			if row['county'] == county and row['status'] == "Vedtatt" and (swap_all or row['nvdb_date'] and "." in row['nvdb_date'][2]):
 				old_ref = row['category'] + row['old_ref']
 				if row['new_ref'] not in new_ref.split(";"):
 					if new_ref:
 						new_ref += ";"
 					new_ref += row['new_ref'].replace("E", "E ")
 	
-	if old_ref:  # and old_ref.strip("RF") != new_ref:
+	if old_ref:
 		new_refs[ old_ref ] = new_ref
 
 	file.close()
@@ -85,6 +85,7 @@ if __name__ == '__main__':
 	count_change = 0
 	count_fixclass = 0
 	count_fixref = 0
+	count_fixmissing = 0
 	count_total = 0
 	used_refs = []
 
@@ -99,13 +100,14 @@ if __name__ == '__main__':
 
 			if highway in ["trunk", "trunk_link"]:
 				old_ref = "R" + old_ref
-			elif highway in ["primary", "primary_link", "secondary", "secondary_link"]:
+			elif highway in ["primary", "primary_link", "secondary", "secondary_link", "tertiary", "tertiary_link"]:
 				old_ref = "F" + old_ref
 
 			if old_ref in new_refs:
 				if swap_ref and old_ref.strip("RF") != new_refs[old_ref]:
 					count_change += 1
 					ref_tag.set("v", new_refs[old_ref])
+					way.append(ElementTree.Element("tag", k="old_ref", v=old_ref.strip("F").strip("R")))
 					way.append(ElementTree.Element("tag", k="NEWREF", v="%s -> %s" % (old_ref.replace("F", "Fv").replace("R", "Rv"), new_refs[old_ref])))
 					if ";" in new_refs[old_ref]:
 						way.append(ElementTree.Element("tag", k="FIXREF", v="Please split refs according to NVDB"))
@@ -114,18 +116,25 @@ if __name__ == '__main__':
 
 				if ";" not in new_refs[old_ref] and\
 					(len(new_refs[old_ref]) > 3 and highway not in ["secondary", "secondary_link"] and "E" not in new_refs[old_ref] or \
-					len(new_refs[old_ref]) < 4 and highway in ["secondary", "secondary_link"]):
-					way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please check primary/secondary"))
+					len(new_refs[old_ref]) < 4 and highway in ["secondary", "secondary_link"]) or \
+					highway in ["tertiary", "tertiary_link"]:
+					way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify primary/secondary"))
 					way.set("action", "modify")
 					count_fixclass += 1
 
 				used_refs.append(old_ref)
 
-			elif extra_check and len(old_ref) < 5 and highway in ["secondary", "secondary_link"]:
-				way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please check primary/secondary"))
+			elif extra_check and (len(old_ref) < 5 and highway in ["secondary", "secondary_link"] or highway in ["tertiary", "tertiary_link"]):
+				way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify primary/secondary"))
 				way.set("action", "modify")
 				count_fixclass += 1
 
+		elif extra_check and highway_tag != None:
+			highway = highway_tag.attrib['v']
+			if highway in ["motorway", "trunk", "primary", "secondary"]:
+				way.append(ElementTree.Element("tag", k="FIXMISSING", v="Please add missing ref, or change highway type"))
+				way.set("action", "modify")
+				count_fixmissing += 1
 
 	# Discover circular references
 
@@ -160,7 +169,9 @@ if __name__ == '__main__':
 	tree.write(filename, encoding='utf-8', method='xml', xml_declaration=True)
 
 	message ("\n%i of %i refs replaced\n" % (count_change, count_total))
-	message ("%i highways with FIXCLASS to check\n" % count_fixclass)
+	message ("%i highways with FIXCLASS to check (potential primary/secondary mistake)\n" % count_fixclass)
 	message ("%i highways with FIXREF to check (old ref split into several new refs)\n" % count_fixref)
+	message ("%i highways with FIXMISSING to check (no ref found)\n" % count_fixmissing)
 	message ("\nWritten to file '%s'\n" % filename)
 	message ("Time: %i seconds\n" % (time.time() - start_time))
+
