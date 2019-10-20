@@ -13,11 +13,11 @@ import csv
 from xml.etree import ElementTree
 
 
-version = "0.3.0"
+version = "0.4.0"
 
-swap_ref = True     # Swap ref's in OSM file
-swap_all = True     # Swap all ref's regardless of NVDB update status
-extra_check = True  # Also carry out additional verifications (missing ref, primary/secondary not in table)
+swap_ref = True      # Swap ref's in OSM file
+swap_all = True      # Swap all ref's regardless of NVDB update status
+extra_check = True   # Also carry out additional verifications (missing ref, primary/secondary not in table)
 
 
 # Output message
@@ -98,10 +98,11 @@ if __name__ == '__main__':
 			old_ref = ref_tag.attrib['v']
 			highway = highway_tag.attrib['v']
 
-			if highway in ["trunk", "trunk_link"]:
-				old_ref = "R" + old_ref
-			elif highway in ["primary", "primary_link", "secondary", "secondary_link", "tertiary", "tertiary_link"]:
-				old_ref = "F" + old_ref
+			if "E" not in old_ref:
+				if highway in ["motorway", "motorway_link", "trunk", "trunk_link"]:
+					old_ref = "R" + old_ref
+				elif highway in ["primary", "primary_link", "secondary", "secondary_link", "tertiary", "tertiary_link"]:
+					old_ref = "F" + old_ref
 
 			if old_ref in new_refs:
 				if swap_ref and old_ref.strip("RF") != new_refs[old_ref]:
@@ -110,29 +111,30 @@ if __name__ == '__main__':
 					way.append(ElementTree.Element("tag", k="old_ref", v=old_ref.strip("F").strip("R")))
 					way.append(ElementTree.Element("tag", k="NEWREF", v="%s -> %s" % (old_ref.replace("F", "Fv").replace("R", "Rv"), new_refs[old_ref])))
 					if ";" in new_refs[old_ref]:
-						way.append(ElementTree.Element("tag", k="FIXREF", v="Please split refs according to NVDB"))
+						way.append(ElementTree.Element("tag", k="FIXREF", v="Please split ref's according to NVDB"))
 						count_fixref += 1
 					way.set("action", "modify")
 
-				if ";" not in new_refs[old_ref] and\
-					(len(new_refs[old_ref]) > 3 and highway not in ["secondary", "secondary_link"] and "E" not in new_refs[old_ref] or \
-					len(new_refs[old_ref]) < 4 and highway in ["secondary", "secondary_link"]) or \
-					highway in ["tertiary", "tertiary_link"]:
-					way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify primary/secondary"))
+				if extra_check and (";" not in new_refs[old_ref] and\
+						(len(new_refs[old_ref]) > 3 and highway not in ["secondary", "secondary_link"] and "E" not in new_refs[old_ref] or \
+						len(new_refs[old_ref]) < 4 and highway in ["secondary", "secondary_link"]) or \
+						highway in ["tertiary", "tertiary_link"]):
+					way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify highway class or remove ref"))
 					way.set("action", "modify")
 					count_fixclass += 1
 
 				used_refs.append(old_ref)
 
-			elif extra_check and (len(old_ref) < 5 and highway in ["secondary", "secondary_link"] or highway in ["tertiary", "tertiary_link"]):
-				way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify primary/secondary"))
+			elif extra_check and (len(old_ref) < 5 and highway in ["secondary", "secondary_link"] or \
+					highway not in ["motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link", "secondary", "secondary_link"]):
+				way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify highway class or remove ref"))
 				way.set("action", "modify")
 				count_fixclass += 1
 
 		elif extra_check and highway_tag != None:
 			highway = highway_tag.attrib['v']
 			if highway in ["motorway", "trunk", "primary", "secondary"]:
-				way.append(ElementTree.Element("tag", k="FIXMISSING", v="Please add missing ref, or change highway type"))
+				way.append(ElementTree.Element("tag", k="FIXMISSING", v="Please add missing ref or change highway class"))
 				way.set("action", "modify")
 				count_fixmissing += 1
 
