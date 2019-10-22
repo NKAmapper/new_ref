@@ -15,7 +15,7 @@ Example: <code>python new_ref.py 14 Sogn_og_Fjordane.osm</code>
 * Preparations - Existing OSM highways:
   * Download the existing highways from OSM for one county with the following text in the Overpass query wizard in JOSM: <code>highway=primary or highway=primary_link or highway=secondary or highway=secondary_link or highway=trunk or highway=trunk_link or highway=motorway or highway=motorway_link or highway=tertiary or highway=tertiary_link or route=ferry or (highway=* and ref=*) in "Sogn og Fjordane"</code>.
   * Remember to include <code>(._;>;); (._;<;);</code> in the query to reduce risk of conflicts when uploading.
-  * Make sure that the highways in question are split at the county border. Update OSM if needed.
+  * Make sure that the highways in question are split at the county border. Update OSM if needed, and exclude highways outside of the county boundary with the Forge command in JOSM, so that they are not included in the ref transformation.
   * Store the downloaded highways from OSM as the input file.
 * The resulting output file will contain the same highways with updated ref's.
   * If a *FIXREF* tag was produced: There are more than one new ref. Please check the preconfigured imagery for new road numbers in JOSM and distribute the ref's into the correct parts of the highway. The *inview* search string in JOSM might be helpful.
