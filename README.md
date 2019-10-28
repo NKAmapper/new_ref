@@ -1,5 +1,5 @@
 # new_ref
-Replace highway ref's in an OSM file for the Norwegian county reform
+Replace highway refs in an OSM file for the Norwegian county reform.
 
 ### Usage ###
 <code>python new_ref.py [county code] [input file]</code>
@@ -18,7 +18,7 @@ Example: <code>python new_ref.py 14 Sogn_og_Fjordane.osm</code>
   * Make sure that the highways in question are split at the county border. Update OSM if needed, and exclude highways outside of the county boundary with the Forge command in JOSM, so that they are not included in the ref transformation.
   * Store the downloaded highways from OSM as the input file.
 * The resulting output file will contain the same highways with updated ref's.
-  * If a *FIXREF* tag was produced: There are more than one new ref. Please check the preconfigured imagery for new road numbers in JOSM and distribute the ref's into the correct parts of the highway. The *inview* search string in JOSM might be helpful.
+  * If a *FIXREF* tag was produced: There are more than one new ref. Please check the preconfigured imagery for new road numbers in JOSM and distribute the refs into the correct parts of the highway. The *inview* search string in JOSM might be helpful.
   * If a *FIXCLASS* tag was produced: Please check if the highway has the correct class tagging (primary/secondary). Often short segments such as a bridge may have the wrong highway tag. Sometimes the *ref* tag needs to be removed.
   * If a *FIXMISSING* tag was produced: Please check if this highway should have a *ref* tag, or if the highway is tagged with a wrong highway class.
   * The *NEWREF* tag will show which ref conversion was made, for informational purposes only.
@@ -28,11 +28,11 @@ Example: <code>python new_ref.py 14 Sogn_og_Fjordane.osm</code>
   * The risk of conflicts will increase if edits are not uploaded quite soon after the input file was generated, as other users may have edited the highways or associated relations. In the latter case even changes far away from the county in question can cause problems.
   * Remember to remove the uppercase information tags before uploading.
  * The following potential problems will be reported by the program and should be checked:
-   * Any circular references, i.e. a new ref in the Excel sheet which are also an old ref
-   * Any old refs in the Excel sheet which were not found in OSM
+   * Any circular references, i.e. a new ref in the spreadsheet which are also an old ref.
+   * Any old refs in the spreadsheet not found in OSM.
 
 ### References ###
 
 * [Statens Vegvesen - New road numbers](https://www.vegvesen.no/fag/teknologi/nasjonal+vegdatabank/tjenester/nye-vegnummer)
-* [Excel files](https://labs.vegdata.no/nvdbstatus/regionreform/vegnummer/)
+* [Spreadsheet files](https://labs.vegdata.no/nvdbstatus/regionreform/vegnummer/)
 * [Kartverket - Road network](https://www.kartverket.no/Om-Kartverket/Nyheter/vegnett-og-kommunereformen-2020/)
