@@ -13,11 +13,13 @@ import csv
 from xml.etree import ElementTree
 
 
-version = "0.4.0"
+version = "0.5.0"
 
 swap_ref = True      # Swap ref's in OSM file
 swap_all = True      # Swap all ref's regardless of NVDB update status
 extra_check = True   # Also carry out additional verifications (missing ref, primary/secondary not in table)
+
+exclude_highways = ["construction", "platform", "path", "track"]
 
 
 # Output message
@@ -125,7 +127,8 @@ if __name__ == '__main__':
 
 				used_refs.append(old_ref)
 
-			elif extra_check and (len(old_ref) < 5 and highway in ["secondary", "secondary_link"] or \
+			elif extra_check and highway not in exclude_highways and \
+					(len(old_ref) < 5 and highway in ["secondary", "secondary_link"] or \
 					highway not in ["motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link", "secondary", "secondary_link"]):
 				way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify highway class or remove ref"))
 				way.set("action", "modify")
@@ -164,9 +167,9 @@ if __name__ == '__main__':
 	root.set("upload", "false")
 
 	if ".osm" in filename:
-		filename = filename.replace(".osm", "_new.osm")
+		filename = filename.replace(".osm", "_newref.osm")
 	else:
-		filename = filename + "_new.osm"
+		filename = filename + "_newref.osm"
 
 	tree.write(filename, encoding='utf-8', method='xml', xml_declaration=True)
 
@@ -176,4 +179,3 @@ if __name__ == '__main__':
 	message ("%i highways with FIXMISSING to check (no ref found)\n" % count_fixmissing)
 	message ("\nWritten to file '%s'\n" % filename)
 	message ("Time: %i seconds\n" % (time.time() - start_time))
-
