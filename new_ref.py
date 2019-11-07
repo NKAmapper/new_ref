@@ -3,7 +3,8 @@
 
 # new_ref
 # Replace refs of highways according to Statens Vegvesen conversion list for 2019
-# Usage: python new_ref.py [county #] [input_filename.osm]
+# Usage: python new_ref.py input_filename.osm]
+# The input filename should include the name of the county
 # Resulting file will be written to input_filename + "_new.osm"
 
 
@@ -13,13 +14,36 @@ import csv
 from xml.etree import ElementTree
 
 
-version = "0.5.0"
+version = "0.6.0"
 
 swap_ref = True      # Swap ref's in OSM file
 swap_all = True      # Swap all ref's regardless of NVDB update status
 extra_check = True   # Also carry out additional verifications (missing ref, primary/secondary not in table)
 
 exclude_highways = ["construction", "platform", "path", "track"]
+
+counties = {
+	"Østfold":    "1",
+	"Akershus":   "2",
+	"Oslo":       "3",
+	"Hedmark":    "4",
+	"Oppland":    "5",
+	"Buskerud":   "6",
+	"Vestfold":   "7",
+	"Telemark":   "8",
+	"Aust-Agder": "9",
+	"Vest-Agder": "10",
+	"Rogaland":   "11",
+	"Hordaland":  "12",
+	"Sogn":       "14",
+	"Fjordane":   "14",
+	"Møre":       "15",
+	"Romsdal":    "15",
+	"Trøndelag":  "50",
+	"Nordland":   "18",
+	"Troms":      "19",
+	"Finnmark":   "20"
+}
 
 
 # Output message
@@ -34,18 +58,29 @@ def message (line):
 
 if __name__ == '__main__':
 
-	# Read all data into memory
+	# Get filename and county number
 
 	start_time = time.time()
 	
-	if len(sys.argv) > 2:
-		county = sys.argv[1]
-		filename = sys.argv[2]
+	if len(sys.argv) > 1:
+		filename = sys.argv[1]
 	else:
-		message ("Please include county number and input osm filename as parameter\n")
+		message ("Please include input osm filename as parameter\n")
 		sys.exit()
 
-	message ("\nReading file '%s'..." % filename)
+	county = None
+	for county_name, county_number in counties.iteritems():
+		if county_name.lower() in filename.lower():
+			county = county_number
+			break
+
+	if not county:
+		message ("Please include county name in filename\n")
+		sys.exit()
+
+	# Read all data into memory
+
+	message ("\nReading file '%s' for county #%s..." % (filename, county))
 
 	tree = ElementTree.parse(filename)
 	root = tree.getroot()
@@ -93,9 +128,10 @@ if __name__ == '__main__':
 
 	for way in root.iter('way'):
 		ref_tag = way.find("tag[@k='ref']")
+		oldref_tag = way.find("tag[@k='old_ref']")
 		highway_tag = way.find("tag[@k='highway']")
 
-		if ref_tag != None and highway_tag != None:
+		if ref_tag != None and highway_tag != None and oldref_tag == None:
 			count_total += 1
 			old_ref = ref_tag.attrib['v']
 			highway = highway_tag.attrib['v']
@@ -120,6 +156,7 @@ if __name__ == '__main__':
 				if extra_check and (";" not in new_refs[old_ref] and\
 						(len(new_refs[old_ref]) > 3 and highway not in ["secondary", "secondary_link"] and "E" not in new_refs[old_ref] or \
 						len(new_refs[old_ref]) < 4 and highway in ["secondary", "secondary_link"]) or \
+						"E" in new_refs[old_ref] and highway not in ["motorway", "motorway_link", "trunk", "trunk_link"] or \
 						highway in ["tertiary", "tertiary_link"]):
 					way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify highway class or remove ref"))
 					way.set("action", "modify")
@@ -128,7 +165,9 @@ if __name__ == '__main__':
 				used_refs.append(old_ref)
 
 			elif extra_check and highway not in exclude_highways and \
-					(len(old_ref) < 5 and highway in ["secondary", "secondary_link"] or \
+						(len(old_ref) < 5 and highway in ["secondary", "secondary_link"] or \
+						"E" in old_ref and highway not in ["motorway", "motorway_link", "trunk", "trunk_link"] or \
+						"E" in old_ref and "E " not in old_ref or \
 					highway not in ["motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link", "secondary", "secondary_link"]):
 				way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify highway class or remove ref"))
 				way.set("action", "modify")
@@ -136,10 +175,24 @@ if __name__ == '__main__':
 
 		elif extra_check and highway_tag != None:
 			highway = highway_tag.attrib['v']
-			if highway in ["motorway", "trunk", "primary", "secondary"]:
+
+			if ref_tag == None and highway in ["motorway", "trunk", "primary", "secondary"]:
 				way.append(ElementTree.Element("tag", k="FIXMISSING", v="Please add missing ref or change highway class"))
 				way.set("action", "modify")
 				count_fixmissing += 1
+
+			if ref_tag != None:
+				ref = ref_tag.attrib['v']
+				if highway not in exclude_highways and \
+						(len(ref) < 4 and highway in ["secondary", "secondary_link"] or \
+						len(ref) > 3 and "E" not in ref and highway not in ["secondary", "secondary_link"] or \
+						"E" in ref and highway not in ["motorway", "motorway_link", "trunk", "trunk_link"] or \
+						"E" in ref and "E " not in ref or \
+						highway not in ["motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link", "secondary", "secondary_link"]):
+					way.append(ElementTree.Element("tag", k="FIXCLASS", v="Please verify highway class or remove ref"))
+					way.set("action", "modify")
+					count_fixclass += 1
+
 
 	# Discover circular references
 
