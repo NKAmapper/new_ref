@@ -2,10 +2,11 @@
 Replace highway refs in an OSM file for the Norwegian county reform.
 
 ### Usage ###
-<code>python new_ref.py [county code] [input file]</code>
+<code>python new_ref.py [input file]</code>
 
-Example: <code>python new_ref.py 14 Sogn_og_Fjordane.osm</code>
+Example: <code>python new_ref.py Sogn_og_Fjordane.osm</code>
 
+The filename must contain the name of the county.
 
 ### Notes ###
 * This program has been made to replace OSM highway ref's in Norway for the Norwegian 2019/2020 county reform. It converts one county at a time.
@@ -19,7 +20,7 @@ Example: <code>python new_ref.py 14 Sogn_og_Fjordane.osm</code>
   * Store the downloaded highways from OSM as the input file.
 * The resulting output file will contain the same highways with updated ref's.
   * If a *FIXREF* tag was produced: There are more than one new ref. Please check the preconfigured imagery for new road numbers in JOSM and distribute the refs into the correct parts of the highway. The *inview* search string in JOSM might be helpful.
-  * If a *FIXCLASS* tag was produced: Please check if the highway has the correct class tagging (primary/secondary). Often short segments such as a bridge may have the wrong highway tag. Sometimes the *ref* tag needs to be removed.
+  * If a *FIXCLASS* tag was produced: Please check if the highway has the correct class tagging (typically primary/secondary). Often short segments such as a bridge may have the wrong highway tag. Sometimes the *ref* tag needs to be removed, or there might be a missing space in "E 6" and similar.
   * If a *FIXMISSING* tag was produced: Please check if this highway should have a *ref* tag, or if the highway is tagged with a wrong highway class.
   * The *NEWREF* tag will show which ref conversion was made, for informational purposes only.
 * When uploading to OSM:
